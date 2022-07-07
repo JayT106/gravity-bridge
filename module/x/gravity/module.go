@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/rand"
+	"os"
+	"path"
 
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
@@ -195,5 +197,39 @@ func (am AppModule) WeightedOperations(simState module.SimulationState) []simtyp
 	// return simulation.WeightedOperations(
 	// simState.AppParams, simState.Cdc, am.accountKeeper, am.bankKeeper, am.keeper, am.stakingKeeper,
 	// )
+	return nil
+}
+
+// InitGenesis initializes the genesis state for this module and implements app module.
+func (am AppModule) InitGenesisFrom(ctx sdk.Context, cdc codec.JSONCodec, importPath string) ([]abci.ValidatorUpdate, error) {
+	// var genesisState types.GenesisState
+	// cdc.MustUnmarshalJSON(data, &genesisState)
+	// keeper.InitGenesis(ctx, am.keeper, genesisState)
+	return []abci.ValidatorUpdate{}, nil
+}
+
+// ExportGenesis exports the current genesis state to a json.RawMessage
+func (am AppModule) ExportGenesisTo(ctx sdk.Context, cdc codec.JSONCodec, exportPath string) error {
+	if err := os.MkdirAll(exportPath, 0755); err != nil {
+		return err
+	}
+
+	f, err := os.Create(path.Join(exportPath, "genesis0"))
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	gs := keeper.ExportGenesis(ctx, am.keeper)
+	bz, err := gs.Marshal()
+	if err != nil {
+		return err
+	}
+
+	_, err = f.Write(bz)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

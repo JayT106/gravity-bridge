@@ -15,7 +15,7 @@ import (
 // ExportAppStateAndValidators exports the state of the application for a genesis
 // file.
 func (app *Gravity) ExportAppStateAndValidators(
-	forZeroHeight bool, jailWhiteList []string,
+	forZeroHeight bool, jailWhiteList []string, exportPath string,
 ) (servertypes.ExportedApp, error) {
 
 	ctx := app.NewContext(true, tmproto.Header{Height: app.LastBlockHeight()})
@@ -26,7 +26,10 @@ func (app *Gravity) ExportAppStateAndValidators(
 		app.prepForZeroHeightGenesis(ctx, jailWhiteList)
 	}
 
-	genState := app.mm.ExportGenesis(ctx, app.appCodec)
+	genState, err := app.mm.ExportGenesis(ctx, app.appCodec)
+	if err != nil {
+		return servertypes.ExportedApp{}, err
+	}
 	appState, err := json.MarshalIndent(genState, "", "  ")
 	if err != nil {
 		return servertypes.ExportedApp{}, err

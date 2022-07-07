@@ -239,5 +239,5 @@ func (a appCreator) appExport(
 		gravity = app.NewGravityApp(logger, db, traceStore, true, map[int64]bool{}, "", uint(1), a.encCfg, appOpts)
 	}
 
-	return gravity.ExportAppStateAndValidators(forZeroHeight, jailAllowedAddrs)
+	return gravity.ExportAppStateAndValidators(forZeroHeight, jailAllowedAddrs, "")
 }
