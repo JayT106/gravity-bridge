@@ -202,9 +202,29 @@ func (am AppModule) WeightedOperations(simState module.SimulationState) []simtyp
 
 // InitGenesis initializes the genesis state for this module and implements app module.
 func (am AppModule) InitGenesisFrom(ctx sdk.Context, cdc codec.JSONCodec, importPath string) ([]abci.ValidatorUpdate, error) {
-	// var genesisState types.GenesisState
-	// cdc.MustUnmarshalJSON(data, &genesisState)
-	// keeper.InitGenesis(ctx, am.keeper, genesisState)
+	fp := path.Join(importPath, fmt.Sprintf("genesis_%s.bin", types.ModuleName))
+	f, err := os.OpenFile(fp, os.O_RDONLY, 0666)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+
+	fi, err := f.Stat()
+	if err != nil {
+		return nil, err
+	}
+
+	bz := make([]byte, fi.Size())
+	if _, err := f.Read(bz); err != nil {
+		return nil, err
+	}
+
+	var gs *types.GenesisState
+	if err := gs.Unmarshal(bz); err != nil {
+		return nil, err
+	}
+
+	keeper.InitGenesis(ctx, am.keeper, *gs)
 	return []abci.ValidatorUpdate{}, nil
 }
 
@@ -214,8 +234,8 @@ func (am AppModule) ExportGenesisTo(ctx sdk.Context, cdc codec.JSONCodec, export
 		return err
 	}
 
-	filePath := path.Join(exportPath, fmt.Sprintf("%s%d", types.ModuleName, 0))
-	f, err := os.OpenFile(filePath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	fp := path.Join(exportPath, fmt.Sprintf("genesis_%s.bin", types.ModuleName))
+	f, err := os.Create(fp)
 	if err != nil {
 		return err
 	}
@@ -227,8 +247,7 @@ func (am AppModule) ExportGenesisTo(ctx sdk.Context, cdc codec.JSONCodec, export
 		return err
 	}
 
-	_, err = f.Write(bz)
-	if err != nil {
+	if _, err = f.Write(bz); err != nil {
 		return err
 	}
 
