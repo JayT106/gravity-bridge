@@ -69,7 +69,7 @@ func SimulationOperations(app Gravity, cdc codec.JSONCodec, config simtypes.Conf
 		}
 	}
 
-	simState.Contents = app.SimulationManager().GetProposalContents(simState)
+	simState.LegacyProposalContents = app.SimulationManager().GetProposalContents(simState)
 	return app.SimulationManager().WeightedOperations(simState)
 }
 
